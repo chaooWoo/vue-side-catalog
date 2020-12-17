@@ -171,6 +171,7 @@ export default {
   },
   
   async mounted() {
+    // debounce函数(防抖)
     this.debounceIntoView = debounce(this.activeIntoView, 250);
     this.throttleScroll = throttle(this.scrollHandle, 200);
     await this.setOffsetParent();
@@ -198,19 +199,25 @@ export default {
   methods: {
   
   
-    // 点击title
-    activeAnchor(ref) {
+    // 点击目录中的title实行锚点跳转
+    activeAnchor(ref) { // 参数ref为该标题(锚点)的name-index形式
       if (this.active === ref) return;
       // 点击title 会触发scroll事件,在内容高度不够的情况下点击的title和active的title会有出入
-      // 所以点击的时候先return掉scroll事件
+      // 所以点击的时候先return掉scroll事件???
       this.itemClicking = true;
+      // 获取该标题距离顶部的相对偏移量
       this.scrollToEle.scrollTop = this.refTopMap[ref];
+      // 更换被激活标签
       this.active = ref;
+      // debounce防抖
       this.debounceIntoView();
-      // 等待页面滚动完成
+      // 等待页面滚动完成，滚动完成后更改被点击状态
       setTimeout(() => {
         this.itemClicking = false;
       }, 150);
+      // emit函数可以触发第一个参数的父元素自定义事件
+      // 父元素: <div @title-click='customFunc(p)'></div>
+      //         function customFunc(p) console.log(p); // 多参数: p[0],p[1]
       this.$emit("title-click", ref);
     },
     
