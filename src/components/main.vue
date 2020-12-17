@@ -265,7 +265,7 @@ export default {
     
     // scroll事件
     scrollHandle() {
-      // 点击title的滚动不触发
+      // 点击title的滚动不触发，短时间内点击两个title不会触发滚动，类似于锁
       if (this.itemClicking) return;
       const { scrollTop, clientHeight, scrollHeight } = this.scrollToEle;
       // 到达顶部
@@ -278,6 +278,8 @@ export default {
         this.initActive(true);
         return;
       }
+      // some()判断数组中的元素是否满足某个条件，找到第一个满足条件的元素就返回true，不再检查后续元素
+      // 倒着查估计是因为some()是顺序检查，而一般情况下目录点击正序时后面的元素较多，那么检查倒序数组则会更快一些
       this.reverseTopList.some(item => {
         if (scrollTop >= item.offsetTop) {
           this.active = item.ref;
