@@ -75,6 +75,7 @@ import throttle from "lodash.throttle";
 export default {
   name: "SideCatalog",
   props: {
+    // 可能是不必要的
     refList: {
       type: Array,
       default() {
@@ -98,41 +99,50 @@ export default {
       type: Boolean,
       default: false
     },
+    // 指定文章的容器
     container: {
       type: String,
       required: true
       // default: ""
     },
+    // 被扫描的h元素级别
     levelList: {
       type: Array,
       default() {
         return ["h2", "h3", "h4", "h5"];
       }
     },
+    // 被选中的目录标题颜色
     activeColor: {
       type: String,
       default: "#006bff"
     },
+    // 目录的高度
     height: {
       type: String,
       default: ""
     },
+    // 不同级别的偏移量(区别不同级别)
     levelGap: {
       type: Number,
       default: 20
     },
+    // 是否取消偏移量，左对齐
     iconLeft: {
       type: Boolean,
       default: false
     },
+    // 目录顶部标题
     title: {
       type: String,
       default: ""
     },
+    // 目录左侧线的left值
     lineLeft: {
       type: Number,
       default: 22
     },
+    // 是否展示左侧线
     lineShow: {
       type: Boolean,
       default: true
@@ -159,6 +169,7 @@ export default {
       return this.innerScroll ? this.scrollElement : document.documentElement;
     }
   },
+  
   async mounted() {
     this.debounceIntoView = debounce(this.activeIntoView, 250);
     this.throttleScroll = throttle(this.scrollHandle, 200);
@@ -172,6 +183,7 @@ export default {
       this.setWatcher();
     }, 500);
   },
+  
   beforeDestroy() {
     if (!this.watch) return;
     // beforeDestroy时,解绑dom监听之前,会触发observer监听的setTopList函数
@@ -182,7 +194,10 @@ export default {
 
     this.scrollElement.removeEventListener("scroll", this.throttleScroll);
   },
+  
   methods: {
+  
+  
     // 点击title
     activeAnchor(ref) {
       if (this.active === ref) return;
@@ -198,6 +213,9 @@ export default {
       }, 150);
       this.$emit("title-click", ref);
     },
+    
+    
+    
     // 获取ref的dom
     getRefDom(_ref) {
       /**
@@ -213,11 +231,15 @@ export default {
       }
       return this.vueOrDom(ref);
     },
+    
+    
     // ref 是vue还是dom
     vueOrDom(ref) {
       if (ref instanceof HTMLElement) return ref;
       if (ref._isVue) return ref.$el;
     },
+    
+    
     // 获取ref offsetTop数组
     setTopList() {
       if (this.isBeforeDestroy) return;
@@ -232,6 +254,8 @@ export default {
       ).reverse();
       // this.scrollHeight = this.scrollToEle.scrollHeight;
     },
+    
+    
     // scroll事件
     scrollHandle() {
       // 点击title的滚动不触发
@@ -256,12 +280,16 @@ export default {
         return false;
       });
     },
+    
+    
     initActive(last) {
       if (!this.topList.length) return;
       const index = last ? this.topList.length - 1 : 0;
       this.active = this.topList[index].ref;
       this.debounceIntoView(true);
     },
+    
+    
     activeIntoView(edge) {
       // 等active元素改变后
       this.$nextTick(() => {
@@ -276,11 +304,15 @@ export default {
         });
       });
     },
+    
+    
     getTitleMargin(level) {
       return level
         ? `${parseInt(level, 10) * this.levelGap}px`
         : this.levelGap + "px";
     },
+    
+    
     // 需要为scrollElement设置相对定位(offsetParent)
     // offsetParent(定位元素或者最近的 table,td,th,body)
     setOffsetParent() {
@@ -289,9 +321,13 @@ export default {
       if (ele.style.position) return;
       ele.style.position = "relative";
     },
+    
+    
     isChildren(level) {
       return level && level > 1;
     },
+    
+    
     setWatcher() {
       // 设置dom监听
       this.observer = new MutationObserver(debounce(this.setTopList, 700));
@@ -301,7 +337,9 @@ export default {
         attributes: true
       });
     },
-    // 根据refList获取catalogList
+    
+    
+    // 根据refList获取catalogList，不常用
     topForList() {
       this.refList.forEach(item => {
         const offsetTop = this.getRefDom(item.ref).offsetTop;
@@ -315,28 +353,38 @@ export default {
         this.refTopMap[item.ref] = offsetTop;
       });
     },
-    // 根据levelList获取catalogList
+    
+    
+    // 根据levelList获取catalogList，当前使用
     topForDom() {
       let headlevel = {};
+      // 将h元素设置一个数字标号，例如{'h1':1,'h2':2}
       this.levelList.forEach((item, index) => {
         headlevel[item] = index + 1;
       });
+      // 获取文章容器下的所有标签元素
       const childrenList = Array.from(
         document.querySelectorAll(`${this.container}>*`)
       );
+      
       childrenList.forEach((item, index) => {
+        // 循环检查所有标签元素名
         const nodeName = item.nodeName.toLowerCase();
         if (this.levelList.includes(nodeName)) {
+          // 将符合的元素构造目录基本对象放入topList数组中
           this.topList.push({
             ref: `${item.nodeName}-${index}`,
             title: item.innerText,
             offsetTop: item.offsetTop,
             level: headlevel[nodeName]
           });
+          // 保存每个元素相对于顶部或父元素的顶部偏移量
           this.refTopMap[`${item.nodeName}-${index}`] = item.offsetTop;
         }
       });
     }
+    
+    
   }
 };
 </script>
